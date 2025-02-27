@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Four</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #001f3f;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            color: white;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 80px);
+            grid-template-rows: repeat(6, 80px);
+            gap: 5px;
+            background: #0074D9;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .cell {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .red {
+            background: red;
+        }
+        .yellow {
+            background: yellow;
+        }
+        .message {
+            margin-top: 20px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .reset {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #FF4136;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .reset:hover {
+            background: #85144b;
+        }
+    </style>
+</head>
+<body>
+    <h1>Connect Four</h1>
+    <div class="board" id="board"></div>
+    <div class="message" id="message">Player 1's Turn (Red)</div>
+    <button class="reset" onclick="resetGame()">Restart Game</button>
+
+    <script>
+        const rows = 6;
+        const cols = 7;
+        let board = [];
+        let currentPlayer = 'red';
+        let gameOver = false;
+
+        function createBoard() {
+            const boardDiv = document.getElementById("board");
+            boardDiv.innerHTML = "";
+            board = Array.from({ length: rows }, () => Array(cols).fill(null));
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("cell");
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.addEventListener("click", () => dropDisc(c));
+                    boardDiv.appendChild(cell);
+                }
+            }
+        }
+
+        function dropDisc(col) {
+            if (gameOver) return;
+            for (let r = rows - 1; r >= 0; r--) {
+                if (!board[r][col]) {
+                    board[r][col] = currentPlayer;
+                    updateBoard();
+                    if (checkWin(r, col)) {
+                        document.getElementById("message").innerText = `Player ${currentPlayer === 'red' ? '1' : '2'} Wins! 🎉`;
+                        gameOver = true;
+                    } else {
+                        currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+                        document.getElementById("message").innerText = `Player ${currentPlayer === 'red' ? '1' : '2'}'s Turn (${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)})`;
+                    }
+                    return;
+                }
+            }
+        }
+
+        function updateBoard() {
+            const cells = document.querySelectorAll(".cell");
+            cells.forEach(cell => {
+                const r = cell.dataset.row;
+                const c = cell.dataset.col;
+                cell.className = "cell";
+                if (board[r][c]) {
+                    cell.classList.add(board[r][c]);
+                }
+            });
+        }
+
+        function checkWin(row, col) {
+            const directions = [
+                [[0, 1], [0, -1]],
+                [[1, 0], [-1, 0]],
+                [[1, 1], [-1, -1]],
+                [[1, -1], [-1, 1]]
+            ];
+            
+            for (let direction of directions) {
+                let count = 1;
+                for (let [dr, dc] of direction) {
+                    let r = row + dr;
+                    let c = col + dc;
+                    while (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] === currentPlayer) {
+                        count++;
+                        if (count >= 4) return true;
+                        r += dr;
+                        c += dc;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function resetGame() {
+            gameOver = false;
+            currentPlayer = 'red';
+            document.getElementById("message").innerText = "Player 1's Turn (Red)";
+            createBoard();
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>
